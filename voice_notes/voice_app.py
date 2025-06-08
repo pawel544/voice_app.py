@@ -1,5 +1,5 @@
 from recording.recording import start_recording, play_recording
-
+from recording.time import record_timer
 from speech.speech import recognize_speech
 import os
 import threading
@@ -9,9 +9,9 @@ if not os.path.exists("sound"):
     fol= os.mkdir("sound")
 
 
-pause_event = None
-stop_event = None
-thered = None
+#pause_event = None
+#stop_event = None
+#thered = None
 sample_rate = 44100
 layout=[[sg.Text("Program")],
         [sg.Button("Nagrywaj"),sg.Button("Stop"), sg.Button("Odtwórz"), sg.Button("Notatka Głosowa"), sg.Button("EXIT")],
@@ -32,6 +32,8 @@ while True:
            stop_event = threading.Event()
            thered= threading.Thread(target= start_recording, args=( sample_rate,stop_event,pause_event,window))
            thered.start()
+           time_tender= threading.Thread(target= record_timer, args=(window,pause_event, stop_event))
+           time_tender.start()
 
            window['-OUTPUT-'].update(f"Nagranie rospoczęte")
         elif event == "Stop":
