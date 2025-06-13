@@ -1,3 +1,5 @@
+import time
+
 import PySimpleGUI as sg
 import threading
 import cv2
@@ -5,48 +7,61 @@ from PIL import Image
 import io
 
 
-def wideo(window, control_event, start_rec_event, stop_rec_event):
-    cam = cv2.VideoCapture(0)
-    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+def wideo(window, camer_control, start_video_event, stop_video_event):
+    cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
     fourcc = cv2.VideoWriter_fourcc(*"XVID")
-    fps = 20.0
+    fps = 10.0
     recording = False
     out = None
-
-    width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
+    widht = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    while not control_event.is_set():
+    while not camer_control.is_set():
+
         ret, frame = cam.read()
         if not ret:
             continue
 
-        # Convert image to PNG byte format
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(frame_rgb)
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        window.write_event_value("-IMAGE-", buf.getvalue())
+        if ret:
+            try:
+                # frame_small = cv2.resize(frame, (320, 240))
+                frame_rbg = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                img = Image.fromarray(frame_rbg)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                buf.seek(0)
 
-        # Start recording
-        if start_rec_event.is_set() and not recording:
-            out = cv2.VideoWriter("output.avi", fourcc, fps, (width, height))
-            recording = True
-            start_rec_event.clear()
-
-        # Stop recording
-        if stop_rec_event.is_set() and recording:
-            recording = False
-            if out:
-                out.release()
-                out = None
-            stop_rec_event.clear()
-
-        if recording and out:
+                window.write_event_value("-IMAGE-", buf.getvalue())
+                # window["-image-"].update(buf.getvalue())
+                time.sleep(0.03)
+            except Exception as e:
+                print(f"{e}")
+        if recording and out is not None:
+            # print("lalal")
             out.write(frame)
 
+        if start_video_event.is_set() and not recording:
+            out = cv2.VideoWriter("lallal.avi", fourcc, fps, (widht, height))
+            if not out.isOpened():
+                print("Pompsuło się")
+                recording = False
+                out = None
+            print("lalla")
+            recording = True
+
+        start_video_event.clear()
+        if stop_video_event.is_set():
+            if out and recording:
+                recording = False
+                out.release()
+
+                out = None
+
+                stop_video_event.clear()
+                print("Zakończono")
+
     cam.release()
-    if out:
-        out.release()
+
     cv2.destroyAllWindows()
