@@ -8,6 +8,7 @@ import io
 
 
 def wideo(window, camer_control, start_video_event, stop_video_event):
+
     cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -17,7 +18,7 @@ def wideo(window, camer_control, start_video_event, stop_video_event):
     out = None
     widht = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
+    start_time = None
     while not camer_control.is_set():
 
         ret, frame = cam.read()
@@ -41,8 +42,12 @@ def wideo(window, camer_control, start_video_event, stop_video_event):
         if recording and out is not None:
             # print("lalal")
             out.write(frame)
-
+            elapsed_time= time.time() - start_time
+            window.write_event_value("-TIMER-", f"{elapsed_time:.2f}")
         if start_video_event.is_set() and not recording:
+
+
+            start_time = time.time()
             out = cv2.VideoWriter("lallal.avi", fourcc, fps, (widht, height))
             if not out.isOpened():
                 print("Pompsuło się")

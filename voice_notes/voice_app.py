@@ -38,7 +38,8 @@ while True:
             stop_event = threading.Event()
             thered= threading.Thread(target= start_recording, args=( sample_rate,stop_event,pause_event,window))
             thered.start()
-            time_tender= threading.Thread(target= record_timer, args=(window,pause_event, stop_event))
+
+            time_tender= threading.Thread(target= record_timer, args=(window,stop_event, pause_event))
             time_tender.start()
 
             window['-OUTPUT-'].update(f"Nagranie rospoczęte")
@@ -47,15 +48,15 @@ while True:
             start_video_event = threading.Event()
             camer_control= threading.Event()
             pause_event = threading.Event()
-            stop_event = threading.Event()
             stop_video_event =threading.Event()
-            thered = threading.Thread(target=start_recording, args=(sample_rate, stop_event, pause_event, window))
-            thered_wideo = threading.Thread(target=wideo, args=(window,camer_control,start_video_event,stop_video_event))
-            time_tender = threading.Thread(target=record_timer, args=(window, pause_event, stop_event), daemon=True)
+            thered = threading.Thread(target=start_recording, args=(sample_rate,start_video_event, stop_video_event, window))
+            thered_wideo = threading.Thread(target=wideo, args=(window,camer_control,start_video_event,stop_video_event,))
 
+            #time_tender = threading.Thread(target=record_timer, args=(window,start_video_event ,stop_video_event), daemon=True)
+            #time_tender.start()
             thered_wideo.start()
             thered.start()
-            time_tender.start()
+
             window['-OUTPUT-'].update(f'Start')
         elif event=="Rpzpocznij Nagranie":
             start_video_event.set()
